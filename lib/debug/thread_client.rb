@@ -861,16 +861,23 @@ module DEBUGGER__
     class SuspendReplay < Exception
     end
 
+    # Support for ruby 3.2+
     if ::Fiber.respond_to?(:blocking)
       private def fiber_blocking
         ::Fiber.blocking{yield}
       end
+    # Support for ruby 3.0+
+    elsif ::Fiber.respond_to?(:blocking?)
+      private def fiber_blocking
+        ::Fiber.new(blocking: true) {yield}
+      end
+    # Default action for ruby 2.6+
     else
       private def fiber_blocking
         yield
       end
     end
-    
+
 
     def wait_next_action
       fiber_blocking{wait_next_action_}
